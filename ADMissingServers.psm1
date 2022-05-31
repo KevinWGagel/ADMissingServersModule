@@ -16,53 +16,63 @@
     Get-ADMissingServers.ps1 -LastSeen -180
     Retrieves all AD servers that are enabled but have not been seen by AD for at least 180 days.
 #>
-
-[CmdletBinding()]
-param (
-    [Parameter(
-        Position = 0,
-        Mandatory = $false
-        )]
-        [int]
-        $LastSeen = -180
-)
-
-$ServerResults = @()
-$MissingServers = @()
-
-Write-Verbose "Retrieving all Servers from Active Directory."
-$Servers = Get-ADComputer -Filter 'OperatingSystem -Like "*Server*"' -Properties DNSHostName,Enabled,LastLogonTimeStamp,operatingsystem,DistinguishedName
-Write-Verbose "Processing each AD Server object."
-$Servers | ForEach-Object -Process {
-    $ServerData = [PSCustomObject]@{
-        DNSHostName = 'UNKNOWN' 
-        Enabled = 'UNKNOWN' 
-        LastLogonDate = 'UNKNOWN'  
-        OperatingSystem = 'UNKNOWN' 
-        OU = 'UNKNOWN'  
+function Verb-Noun {
+    [CmdletBinding()]
+    param (
+        [Parameter(
+            Position = 0,
+            Mandatory = $false
+            )]
+            [int]
+            $LastSeen = -180
+    )
+    
+    begin {
+        
     }
+    
+    process {
+        $ServerResults = @()
+        $MissingServers = @()
 
-    $ServerData.DNSHostName = $_.DNSHostName
-    $ServerData.Enabled = $_.enabled
-    $ServerData.LastLogonDate = $([datetime]::FromFileTime($_.LastLogonTimeStamp))
-    $ServerData.OperatingSystem = $_.OperatingSystem
-    $ServerData.OU = $_.DistinguishedName
-    $ServerResults += $ServerData
-    Write-Verbose "Processed $_.DNSHostName."
-}
-Write-Verbose "Comparing each AD Server object's last login time stamp with today $LastSeen."
-$ServerResults | ForEach-Object -Process {
-    if ($_.LastLogonDate -le (Get-Date).AddDays($LastSeen)){
-        #Do something
-        if ($_.OU.EndsWith("OU=Disabled_Servers,OU=ComputerAccounts,DC=canfor,DC=ca")) {
-            #do nothing
-            Write-Verbose "$_.DNSHostName does not fall within the criteria."
+        Write-Verbose "Retrieving all Servers from Active Directory."
+        $Servers = Get-ADComputer -Filter 'OperatingSystem -Like "*Server*"' -Properties DNSHostName,Enabled,LastLogonTimeStamp,operatingsystem,DistinguishedName
+        Write-Verbose "Processing each AD Server object."
+        $Servers | ForEach-Object -Process {
+            $ServerData = [PSCustomObject]@{
+                DNSHostName = 'UNKNOWN' 
+                Enabled = 'UNKNOWN' 
+                LastLogonDate = 'UNKNOWN'  
+                OperatingSystem = 'UNKNOWN' 
+                OU = 'UNKNOWN'  
+            }
+
+            $ServerData.DNSHostName = $_.DNSHostName
+            $ServerData.Enabled = $_.enabled
+            $ServerData.LastLogonDate = $([datetime]::FromFileTime($_.LastLogonTimeStamp))
+            $ServerData.OperatingSystem = $_.OperatingSystem
+            $ServerData.OU = $_.DistinguishedName
+            $ServerResults += $ServerData
+            Write-Verbose "Processed $_.DNSHostName."
         }
-        else {
-            $MissingServers += $_
-            Write-Verbose "$_.DNSHostName hasn't been seen since $_.LastLogonDate."
+        Write-Verbose "Comparing each AD Server object's last login time stamp with today $LastSeen."
+        $ServerResults | ForEach-Object -Process {
+            if ($_.LastLogonDate -le (Get-Date).AddDays($LastSeen)){
+                #Do something
+                if ($_.OU.EndsWith("OU=Disabled_Servers,OU=ComputerAccounts,DC=canfor,DC=ca")) {
+                    #do nothing
+                    Write-Verbose "$_.DNSHostName does not fall within the criteria."
+                }
+                else {
+                    $MissingServers += $_
+                    Write-Verbose "$_.DNSHostName hasn't been seen since $_.LastLogonDate."
+                }
+            }
         }
+        Write-Verbose "Outputing the final results."
+        Return Write-Output $MissingServers
+    }
+    end {
+        
     }
 }
-Write-Verbose "Outputing the final results."
-Write-Output $MissingServers
