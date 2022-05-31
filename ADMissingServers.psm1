@@ -3,7 +3,7 @@
     Retrieves Servers from Active Directory that have not been seen for a period of time.
 .DESCRIPTION
     Use this to locate servers in Active Directory that appear to be missing. Missing servers are determined using the last logon date stored in AD. A default date
-    of one year ago is used in the abscense of a specified date.
+    of 180 days is used in the abscense of a specified date.
 .NOTES
     This function is not supported in Linux.
     This function only uses an negative integer number to specify the "LastSeen" days; ie:"-25","-90","-365" etc.
@@ -11,12 +11,12 @@
     Specify a URI to a help page, this will show when Get-Help -Online is used.
 .EXAMPLE
     Get-ADMissingServers.ps1
-    Retrieves all AD servers that are enabled but have not been seen by AD since the default past date (one year ago today)
+    Retrieves all AD servers that are enabled but have not been seen by AD since the default past date (180 days)
 .EXAMPLE
     Get-ADMissingServers.ps1 -LastSeen -180
     Retrieves all AD servers that are enabled but have not been seen by AD for at least 180 days.
 #>
-function Verb-Noun {
+function Get-ADMissingServers {
     [CmdletBinding()]
     param (
         [Parameter(
