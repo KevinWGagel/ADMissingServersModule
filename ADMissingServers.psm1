@@ -22,9 +22,9 @@ function Get-ADMissingServers {
         [Parameter(
             Position = 0,
             Mandatory = $false
-            )]
-            [int]
-            $LastSeen = -180
+        )]
+        [int]
+        $LastSeen = -180
     )
     
     begin {
@@ -36,15 +36,15 @@ function Get-ADMissingServers {
         $MissingServers = @()
 
         Write-Verbose "Retrieving all Servers from Active Directory."
-        $Servers = Get-ADComputer -Filter 'OperatingSystem -Like "*Server*"' -Properties DNSHostName,Enabled,LastLogonTimeStamp,operatingsystem,DistinguishedName
+        $Servers = Get-ADComputer -Filter 'OperatingSystem -Like "*Server*"' -Properties DNSHostName, Enabled, LastLogonTimeStamp, operatingsystem, DistinguishedName
         Write-Verbose "Processing each AD Server object."
         $Servers | ForEach-Object -Process {
             $ServerData = [PSCustomObject]@{
-                DNSHostName = 'UNKNOWN' 
-                Enabled = 'UNKNOWN' 
-                LastLogonDate = 'UNKNOWN'  
+                DNSHostName     = 'UNKNOWN' 
+                Enabled         = 'UNKNOWN' 
+                LastLogonDate   = 'UNKNOWN'  
                 OperatingSystem = 'UNKNOWN' 
-                OU = 'UNKNOWN'  
+                OU              = 'UNKNOWN'  
             }
 
             $ServerData.DNSHostName = $_.DNSHostName
@@ -57,7 +57,7 @@ function Get-ADMissingServers {
         }
         Write-Verbose "Comparing each AD Server object's last login time stamp with today $LastSeen."
         $ServerResults | ForEach-Object -Process {
-            if ($_.LastLogonDate -le (Get-Date).AddDays($LastSeen)){
+            if ($_.LastLogonDate -le (Get-Date).AddDays($LastSeen)) {
                 #Do something
                 if ($_.OU.EndsWith("OU=Disabled_Servers,OU=ComputerAccounts,DC=canfor,DC=ca")) {
                     #do nothing
