@@ -1,0 +1,1 @@
+This module provides a quick and easy way to get all the server computer objects from Active Directory that are no longer contacting AD. This indicates the server is off or gone. Since AD is a database, it makes no sense to keep inactive servers in AD for an extended length of time.
